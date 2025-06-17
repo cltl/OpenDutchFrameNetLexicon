@@ -3,7 +3,7 @@ from shutil import unregister_archive_format
 
 
 def main():
-    lexicon_path = "merged.json"
+    lexicon_path = "../../..//data/odfn_lexicon_v0.1.json"
     nr_entries = 0
     total_annotations =0
     pos_dict= {}

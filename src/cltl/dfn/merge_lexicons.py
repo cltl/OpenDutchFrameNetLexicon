@@ -64,11 +64,11 @@ def process_lexicons(merged_dict:{}, file):
 
 
 def main():
-    lexicons = ["lexicon-manual.json", "lexicon-system.json", "A1.json", "A2.json", "rbn_dfn_1_2.json"]
+    lexicons = ["fe_lexicon.json", "lexicon-manual.json", "lexicon-system.json", "A1.json", "A2.json", "rbn_dfn_1_2.json"]
     root_dir = "."
     # filenames = os.walk(root_dir)
 
-    root_dir = Path('./input')
+    root_dir = Path('../../../data')
     extension = '.json'
     files = root_dir.rglob(f'*{extension}')
 
@@ -78,7 +78,7 @@ def main():
             print('Loading', file.name)
             process_lexicons(merged_dict, file)
     print('merged lexicon', len(merged_dict.items()))
-    merged_lexicon_path = "./merged.json"
+    merged_lexicon_path = "../../..//data/odfn_lexicon_v0.1.json"
     try:
         with open(merged_lexicon_path, 'w', encoding='utf-8') as f:
             json.dump(merged_dict, f, indent=4, ensure_ascii=False)
