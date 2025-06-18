@@ -2,7 +2,7 @@
 
 This repository contain the Open Dutch Lexicon with FrameNet1.7 annotations. licensed un der the MIT open source license. The lexicon is created from different subprojects following different approaches and applied on different texts:
 
-1. SoNaR Propbank corpus enriched with FN1.7 annotations: [Github](https://github.com/cltl/FrameNet_annotations_on_SoNaR), [Documentation](https://github.com/cltl/FrameNet_annotations_on_SoNaR/blob/master/report/DutchFNannotations.pdf)
+1. SoNaR Propbank corpus enriched with FN1.7 annotations [1]: [Github](https://github.com/cltl/FrameNet_annotations_on_SoNaR), [Documentation](https://github.com/cltl/FrameNet_annotations_on_SoNaR/blob/master/report/DutchFNannotations.pdf)
 2. the RBN-Wordnet alignment [2]: [Github](https://github.com/cltl/Dutch_FrameNet_Lexicon)[Documentation](https://github.com/cltl/Dutch_FrameNet_Lexicon/blob/master/documentation/dfn_classes.pdf)
 3. DataToText Corpus (Wikidata and reference texts) enriched with FN1.7 annnotations [3]
 
@@ -70,7 +70,7 @@ year = {2020},
 bdsk-url-1 = {https://www.aclweb.org/anthology/2020.framenet-1.5}}
 ```
 
-[3] L. Remijnse, P. Vossen, A. Fokkens, and S. Titarsolej, Introducing frege to fillmore: a framenet dataset that captures both sense and reference, 2022.
+[3] L. Remijnse, P. Vossen, A. Fokkens, and S. Titarsolej, Introducing Frege to Fillmore: a FrameNet dataset that captures both sense and reference, 2022, LREC.
 
 ```@proceedings{dfn-lrec2022,
 author = {Levi Remijnse and Piek Vossen and Antske Fokkens and Sam Titarsolej},
