@@ -13,11 +13,81 @@ The input lexicons are json files located in the data folder. At macro level, th
 * pos: part of speech in upper case, i.e. NOUN, VERB, ADJ, etc..
 * frames: list of frames associated with the entry, where each frame has one or more annotations obtained from the different input directories.
 
-The annotations can differ in structure depending on the input. They should have:
+The annotations can differ in terms of additional attributed depending on the input lexicon from which they were drawn. Please refer to the documentation of each subproject for an explanation. At the entry level, additional attributes can have been imported from the RBN dicitonary:
+
+```
+        "incorporated_fe": null,
+        "lu_type": "singleton",
+        "lexemes": [
+            {
+                "POS": "N",
+                "breakBefore": "false",
+                "headword": "false",
+                "name": "kennis",
+                "order": "1"
+            }
+        ],
+        "optional_lu_attrs": {
+            "FN_EN_LU_ID": "161",
+            "Method": "Iteration-2_ODWN",
+            "RBN_LU_ID": "r_n-19311",
+            "RBN_matching_relation": "equivalence"
+        }
+```
+
+At the annotation level all annotations at least have:
 
 * project: name of the project that created the annotation
 * annotator: name of the annotator or annotation process
 * mentions: pointers to the identifiers and possibly offsets for the tokens in the text that were associated with the frame.
+
+Especially the mentions can have slightly different structures depending on the source of the data. An example of an annotation is shown here:
+
+```aiignore
+            "fn17-awareness": {
+                "annotations": [
+                    {
+                        "project": "DutchFrameNet",
+                        "status": "manual",
+                        "annotator": "MDeQ-tjzSSVIj52tFw6-louRoCd7EmPc",
+                        "timestamp": "2023-02-07T15:46:52UTC",
+                        "reftype": "type",
+                        "mention": [
+                            {
+                                "doc": "20bdaf3b-4bbc-4c29-a0f7-82850102b5c4.naf",
+                                "term": "t233",
+                                "tokens": [
+                                    {
+                                        "token_id": "w233",
+                                        "sent": "12",
+                                        "offset": "1449",
+                                        "length": "6"
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "status": "manual",
+                        "timestamp": null,
+                        "project": "RBN_DFN_mapping",
+                        "definition": "die je weet omdat je ze geleerd hebt"
+                    }
+                ]
+```
+
+## Scripts
+
+There are a few scripts given in this repository:
+
+1.For obtaining the entries and annotation from the "Framing situations in the Dutch language" project. 
+These scripts require access to the annotated texts in the NAF format:
+   * extract_frame_element_lexicon_from_naf_corpus.py
+   * extract_frame_lexicon_from_naf_corpus
+2. For merging input lexicons into a single JSON file:
+   * merge_lexicons.py
+3. For obtaining statistics on the merged lexicon:
+   * get_statistics.py
 
 The "merge_lexicons.py" script combines the input lexicons. The main function lets you specify which lexicons to merge. Statistics on the merging of all 6 input lexicons is provided here:
 
@@ -28,7 +98,7 @@ The "merge_lexicons.py" script combines the input lexicons. The main function le
 * A1.json 1246 input, 1246 overlap, 0 added
 * rbn_dfn_1_2.json 951 input, 51 overlap, 900 added
 
-The merged lexicon [odfn_lexicons_v1.json](../data/odfn_lexicons_v1.json) has 4396 unique entries in total with 1828 frames associated, 959 of which are frame elements derived from "fe_lexicon.json".The avrage polysemy (frames per entry) is 2.4 and 2,596 entries have a single frame.  In total 20,707 annotations of these frames have been stored, of which 7,026 frames have a single annotation. The [stats.json](stats.json) file provides further statistics.
+The merged lexicon [odfn_lexicons_v1.json](../data/odfn_lexicons_v1.json) has 4,396 unique entries with 10,222 frame associations, 7115 of these are frames and 3107 are frame elements. The average polysemy (frames per entry) is 2.4 and 2,596 entries have a single frame. The frame associations cover 959 unique frames and 869 unique frame elements (derived from "fe_lexicon.json"). A frame or frame element that is associated with a lexical entry can have one or more annotations. These annotations can be alignments with wthe open Dutch ordnet or the Reference Bestand Nederlands (RBN) or word tokens in corpora that were annotated. In total 20,707 annotations of these frames have been stored, of which 7,026 frames have a single annotation. The [stats.json](stats.json) file provides further statistics.
 
 ## Acknowledgement
 This works was funded through "Understanding language by machines" project (NWO-2013-Vossen-Spinoza ) and the "Framing Situations in the Dutch Language" project (NWO-VC.GW17.083).
