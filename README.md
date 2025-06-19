@@ -13,6 +13,40 @@ The input lexicons are json files located in the data folder. At macro level, th
 * pos: part of speech in upper case, i.e. NOUN, VERB, ADJ, etc..
 * frames: list of frames associated with the entry, where each frame has one or more annotations obtained from the different input directories.
 
+```aiignore
+
+    "zicht:NOUN": {
+        "lemma": "zicht",
+        "pos": "NOUN",
+        "frames": {
+            "fn17-operational_testing@purpose": {
+                "annotations": [
+                    {
+                        "project": "DutchFrameNet",
+                        "status": "manual",
+                        "annotator": "K2LrrJ6ewvRNVMwcGli7eCoKswYyAjuz",
+                        "timestamp": "2021-12-05T15:47:56UTC",
+                        "reftype": "",
+                        "mention": [
+                            {
+                                "doc": "3b8368f1-9a86-4cb5-8ed8-358e833ced39.naf",
+                                "term": "t79",
+                                "tokens": [
+                                    {
+                                        "token_id": "w79",
+                                        "sent": "7",
+                                        "offset": "467",
+                                        "length": "5"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+    },
+```
 The annotations can differ in terms of additional attributed depending on the input lexicon from which they were drawn. Please refer to the documentation of each subproject for an explanation. At the entry level, additional attributes can have been imported from the RBN dicitonary:
 
 ```
