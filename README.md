@@ -1,6 +1,6 @@
 # OpenDutchFrameNetLexicon
 
-This repository contain the Open Dutch Lexicon with FrameNet1.7 annotations. licensed un der the MIT open source license. The lexicon is created from different subprojects following different approaches and applied on different texts:
+This repository contain the Open Dutch Lexicon with FrameNet1.7 annotations. licensed un der the MIT open source license. You are free to use this lexicon but please ackonwledge us and make reference to our papers (see below). The lexicon is created from different subprojects following different approaches and applied on different texts:
 
 1. SoNaR Propbank corpus enriched with FN1.7 annotations [1]: [Github](https://github.com/cltl/FrameNet_annotations_on_SoNaR), [Documentation](https://github.com/cltl/FrameNet_annotations_on_SoNaR/blob/master/report/DutchFNannotations.pdf)
 2. the RBN-Wordnet alignment [2]: [Github](https://github.com/cltl/Dutch_FrameNet_Lexicon)[Documentation](https://github.com/cltl/Dutch_FrameNet_Lexicon/blob/master/documentation/dfn_classes.pdf)
@@ -114,8 +114,7 @@ Especially the mentions can have slightly different structures depending on the 
 
 There are a few scripts given in this repository:
 
-1.For obtaining the entries and annotation from the "Framing situations in the Dutch language" project. 
-These scripts require access to the annotated texts in the NAF format:
+1. For obtaining the entries and annotation from the "Framing situations in the Dutch language" project. 
    * extract_frame_element_lexicon_from_naf_corpus.py
    * extract_frame_lexicon_from_naf_corpus
 2. For merging input lexicons into a single JSON file:
@@ -123,7 +122,15 @@ These scripts require access to the annotated texts in the NAF format:
 3. For obtaining statistics on the merged lexicon:
    * get_statistics.py
 
-The "merge_lexicons.py" script combines the input lexicons. The main function lets you specify which lexicons to merge. Statistics on the merging of all 6 input lexicons is provided here:
+The scripts for extracting the DFN corpus lexicon under 1) require access to the annotated texts in the NAF format. This corpus was compiled using the Multilingual Wiki Event Pipeline (MWEP). The source code, instructions and documentation can be found here:
+
+* MWEP: [Github](https://github.com/cltl/multilingual-wiki-event-pipeline)
+
+The extracted corpus contains structured data to event instances and reference texts that are grounded to these events, so-called reference texts. The reference texts can be annotated using the MWEP Annotation Tool. The tool source code and instructions can be found here:
+
+* MWEP annotation tool: [Github](https://github.com/cltl/FrameNet-annotation-tool)
+
+The "merge_lexicons.py" script combines the input lexicons. The input lexicons for the current release can be found in this Github in de **data** folder. The main function lets you specify which lexicons to merge. Statistics on the merging of all 6 input lexicons is provided here:
 
 * fe_lexicon.json 1179 input, 0 overlap, 1179 added
 * lexicon-manual.json 958 input, 400 overlap, 558 added
@@ -142,6 +149,8 @@ This works was funded through "Understanding language by machines" project (NWO-
 * Pia Sommerauer (pia.sommerauer@vu.nl)
 
 ## References:
+
+When using our code and or our data please make reference to our papers:
 
 [1] P. Vossen, A. Fokkens, I. Maks, and C. V. Son, “Open Dutch FrameNet,” in Proceedings of the International FrameNet Workshop, Miyazaki, Japan, 2018.
 
