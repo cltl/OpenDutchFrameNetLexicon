@@ -1,6 +1,6 @@
 # OpenDutchFrameNetLexicon
 
-This repository contains the [Open Dutch Lexicon with FrameNet1.7 annotations, version 0.1](https://github.com/cltl/OpenDutchFrameNetLexicon/blob/main/data/odfn_lexicon_v0.1.json). licensed un der the MIT open source license. You are free to use this lexicon but please ackonwledge us and make reference to our papers (see below). The lexicon is created from different subprojects following different approaches and applied on different texts:
+This repository contains the [Open Dutch Lexicon with FrameNet1.7 annotations, version 0.1](https://github.com/cltl/OpenDutchFrameNetLexicon/blob/main/data/odfn_lexicon_v0.1.json), licensed under the MIT open source license. You are free to use this lexicon but please ackonwledge us and make reference to our papers (see below). The lexicon is created from different subprojects following different approaches and applied on different texts:
 
 1. SoNaR Propbank corpus enriched with FN1.7 annotations [1]: [Github](https://github.com/cltl/FrameNet_annotations_on_SoNaR), [Documentation](https://github.com/cltl/FrameNet_annotations_on_SoNaR/blob/master/report/DutchFNannotations.pdf)
 2. the RBN-Wordnet alignment [2]: [Github](https://github.com/cltl/Dutch_FrameNet_Lexicon)[Documentation](https://github.com/cltl/Dutch_FrameNet_Lexicon/blob/master/documentation/dfn_classes.pdf)
