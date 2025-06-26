@@ -1,7 +1,6 @@
 import json
-import os
 from pathlib import Path
-
+import naf_util as util
 
 def process_lexicons(merged_dict:{}, file):
     nr_entries = 0
@@ -62,6 +61,15 @@ def process_lexicons(merged_dict:{}, file):
         print(f"Error reading JSON file: {str(e)}", file, lex_entry)
     print(file.name, nr_entries, nr_matches, nr_new_entries)
 
+def prune_annotations_in_lexicon(lexicon):
+    for lex_entry in lexicon:
+        lex_entry_info = lexicon.get(lex_entry)
+        frames = lex_entry_info['frames']
+        for frame in frames:
+            frame_info = frames.get(frame)
+            annotations = frame_info['annotations']
+            pruned_annotations = util.prune_annotations(annotations)
+            frame_info['annotations'] = pruned_annotations
 
 def main():
     lexicons = ["fe_lexicon.json", "lexicon-manual.json", "lexicon-system.json", "A1.json", "A2.json", "rbn_dfn_1_2.json"]
@@ -77,6 +85,8 @@ def main():
         if file.name in lexicons:
             print('Loading', file.name)
             process_lexicons(merged_dict, file)
+    print('merged lexicon', len(merged_dict.items()))
+    prune_annotations_in_lexicon(merged_dict)
     print('merged lexicon', len(merged_dict.items()))
     merged_lexicon_path = "../../..//data/odfn_lexicon_v0.1.json"
     try:

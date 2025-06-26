@@ -17,6 +17,93 @@ def get_naf_files(folder_path):
                 naf_files.append(os.path.join(root, file))
     return naf_files
 
+def same_mention(mention1, mention2):
+    if "term" in mention1 and "term" in mention2:
+        if mention1['doc']==mention2['doc'] and mention1['term']==mention2['term'] and mention1['text']==mention2['text'] and mention1['tokens']==mention2['tokens']:
+            return True
+    elif "tokens" in mention1 and "tokens" in mention2:
+        if mention1['doc']==mention2['doc'] and mention1['tokens']==mention2['tokens']:
+            return True
+    return False
+
+def more_recent_annotation (annotation1, annotation2):
+    if annotation2['timestamp']>annotation1['timestamp']:
+        return True
+    else:
+        return False
+
+def prune_annotations(annotations):
+    pruned_annotations = []
+    duplicate_list = []
+    for index1, annotation1 in enumerate(annotations):
+        if "timestamp" in annotation1:
+            for index2, annotation2 in enumerate(annotations):
+                if index2>index1 and "timestamp" in annotation2:
+                    if annotation1['project'] == annotation2['project'] and annotation1['status'] == annotation2['status']:
+                        for mention1 in annotation1['mention']:
+                            for mention2 in annotation2['mention']:
+                                if same_mention(mention1, mention2):
+                                    if more_recent_annotation(annotation1, annotation2):
+                                        duplicate_list.append(index1)
+                                    else:
+                                        duplicate_list.append(index2)
+    for index1, annotation1 in enumerate(annotations):
+        if not index1 in duplicate_list:
+            pruned_annotations.append(annotation1)
+    if not (len(annotations)==len(pruned_annotations)):
+        print( f"Pruned {len(annotations)-len(pruned_annotations)} duplicate annotations from {len(annotations)} annotations")
+    return pruned_annotations
+
+def update_lexicon(lemma, pos, frames, lexicon):
+    key = lemma+":"+pos
+    if key in lexicon:
+        for frame in frames:
+            frame_info = frames.get(frame)
+            if frame in lexicon[key]['frames']:
+                lexicon[key]['frames'][frame]['annotations'].extend(frame_info)
+            else:
+                lexicon[key]['frames'][frame]={'annotations':frame_info}
+    else:
+        framedict = {}
+        for frame in frames:
+            frame_info = frames.get(frame)
+            if frame in lexicon:
+                framedict[frame]['annotations'].append(frame_info)
+            else:
+                framedict[frame]={'annotations':frame_info}
+        lexicon[key]={'lemma':lemma, 'pos': pos, 'frames': framedict}
+
+def update_lexicon_remove_duplicate_annotation(lemma, pos, lexicon, frames):
+    key = lemma + ":" + pos
+    if key in lexicon:
+        for frame in frames:
+            frame_info = frames.get(frame)
+            if frame in lexicon[key]['frames']:
+                #### check for duplicates and take the most recent annotation
+                duplicate = False
+                current_annotations = lexicon[key]['frames'][frame]['annotations']
+                for annotation in current_annotations:
+                    for mention1 in annotation['mention']:
+                        for mention2 in frame_info['mention']:
+                            if same_mention(mention1, mention2):
+                                if more_recent_annotation(annotation, frame_info):
+                                    annotation = frame_info
+                                    duplicate = True
+                                    break
+                if not duplicate:
+                    lexicon[key]['frames'][frame]['annotations'].extend(frame_info)
+            else:
+                frame
+                lexicon[key]['frames'][frame] = {'annotations': frame_info}
+    else:
+        framedict = {}
+        for frame in frames:
+            frame_info = frames.get(frame)
+            if frame in lexicon:
+                framedict[frame]['annotations'].append(frame_info)
+            else:
+                framedict[frame] = {'annotations': frame_info}
+        lexicon[key] = {'lemma': lemma, 'pos': pos, 'frames': framedict}
 
 def get_term_from_term_id(target, layer):
     # <term id="t262" lemma="Ummah" pos="PROPN" type="open" morphofeat="NNP">

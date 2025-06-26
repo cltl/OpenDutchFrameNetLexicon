@@ -39,24 +39,7 @@ def process_naf_file(naf_file, lexicon: {}, status):
                     if lemma == "":
                         print('EMPTY lemma in', 'file', name, 'span', span)
                     else:
-                        key = lemma + ":" + pos
-                        if key in lexicon:
-                            for frame in frames:
-                                frame_info = frames.get(frame)
-                                if frame in lexicon[key]['frames']:
-                                    lexicon[key]['frames'][frame]['annotations'].extend(frame_info)
-                                else:
-                                    frame
-                                    lexicon[key]['frames'][frame] = {'annotations': frame_info}
-                        else:
-                            framedict = {}
-                            for frame in frames:
-                                frame_info = frames.get(frame)
-                                if frame in lexicon:
-                                    framedict[frame]['annotations'].append(frame_info)
-                                else:
-                                    framedict[frame] = {'annotations': frame_info}
-                            lexicon[key] = {'lemma': lemma, 'pos': pos, 'frames': framedict}
+                        util.update_lexicon(lexicon, lemma, pos, frames)
     except Exception as e:
         print('Error parsing', naf_file, e)
 

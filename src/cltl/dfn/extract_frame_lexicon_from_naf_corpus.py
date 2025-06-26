@@ -1,8 +1,5 @@
 import argparse
-from typing import Any
-
 from lxml import etree as et
-import csv
 import json
 import os
 import naf_util as util
@@ -17,11 +14,11 @@ def process_naf_file(naf_file, lexicon:{}, status):
             term_layer = root.find('terms')
             mw_layer = root.find('multiwords')
             text_layer = root.find('text')
-
-            if srl_layer is  None:
-               # print(f"No SRL layer found in {name}")
+            if srl_layer is None:
+                #print(f"No SRL layer found in {name}")
                 return
             else:
+                print('processing', name)
                 # get all predicates (in a list)
                 predicates = srl_layer.findall('predicate')
                 for predicate in predicates:
@@ -36,29 +33,10 @@ def process_naf_file(naf_file, lexicon:{}, status):
                     if lemma=="":
                         print('EMPTY lemma in', 'file', name, 'span', span)
                     else:
-                        key = lemma+":"+pos
-                        if key in lexicon:
-                            for frame in frames:
-                                frame_info = frames.get(frame)
-                                if frame in lexicon[key]['frames']:
-                                    lexicon[key]['frames'][frame]['annotations'].extend(frame_info)
-                                else:
-                                    frame
-                                    lexicon[key]['frames'][frame]={'annotations':frame_info}
-                        else:
-                            framedict = {}
-                            for frame in frames:
-                                frame_info = frames.get(frame)
-                                if frame in lexicon:
-                                    framedict[frame]['annotations'].append(frame_info)
-                                else:
-                                    framedict[frame]={'annotations':frame_info}
-                            lexicon[key]={'lemma':lemma, 'pos': pos, 'frames': framedict}
+                        util.update_lexicon(lexicon, lemma, pos, frames)
+                        print('nr of entries in', len(lexicon))
         except Exception as e:
             print('Error parsing', naf_file, e)
-
-
-
 
 def main():
     """
@@ -83,7 +61,7 @@ def main():
     print(f"Found {len(naf_files)} NAF files in {corpus_path}")
     lexicon= {}
     status = "system"
-    #status = "manual"
+    status = "manual"
     for file in naf_files[:500]:
         process_naf_file(file, lexicon, status)
     try:
