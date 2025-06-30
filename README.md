@@ -1,17 +1,21 @@
 # OpenDutchFrameNetLexicon
 
-This repository contains the [Open Dutch Lexicon with FrameNet1.7 annotations, version 0.1](https://github.com/cltl/OpenDutchFrameNetLexicon/blob/main/data/odfn_lexicon_v0.1.json), licensed under the MIT open source license. You are free to use this lexicon but please ackonwledge us and make reference to our papers (see below). The lexicon is created from different subprojects following different approaches and applied on different texts:
+This repository contains the [Open Dutch Lexicon with FrameNet1.7 annotations, version 0.1](https://github.com/cltl/OpenDutchFrameNetLexicon/blob/main/data/odfn_lexicon_v0.1.json), licensed under the MIT open source license: 4,308 Dutch entries with 10,116 frame associations. You are free to use this lexicon but please ackonwledge us and make reference to our papers (see below). The lexicon is created from different subprojects following different approaches and applied to different texts:
 
 1. SoNaR Propbank corpus enriched with FN1.7 annotations [paper 1]: [Github](https://github.com/cltl/FrameNet_annotations_on_SoNaR), [Documentation](https://github.com/cltl/FrameNet_annotations_on_SoNaR/blob/master/report/DutchFNannotations.pdf)
-2. the RBN-Wordnet alignment [paper 2]: [Github](https://github.com/cltl/Dutch_FrameNet_Lexicon)[Documentation](https://github.com/cltl/Dutch_FrameNet_Lexicon/blob/master/documentation/dfn_classes.pdf)
-3. DataToText Corpus (Wikidata and reference texts) enriched with FN1.7 annnotations [paper 3]
+2. RBN-Wordnet alignment [paper 2]: [Github](https://github.com/cltl/Dutch_FrameNet_Lexicon)[Documentation](https://github.com/cltl/Dutch_FrameNet_Lexicon/blob/master/documentation/dfn_classes.pdf)
+3. DataToText Corpus (Wikidata and reference texts) enriched with FN1.7 annnotations [paper 3] (Code and data in this Github)
 
-The input lexicons are json files located in the data folder. At macro level, the structure of each lexicon has to be as follows:
+Each of these projects resulted in different annotated corpora and/or lexicons. They have in common that they are in Dutch and contain some form of Framenet1.7 annotations. This Github contains the code to derive a lexicon from the DataToText corpus (see below) and to merge the three resulting lexicons into one joined lexicon. For the former, the annotated corpus is needed [TBA: POINTER TO THE DATA GITHUB](URL WILL GO HERE) and the scripts in this repository. For mergin the three lexicons, the ```merge_lexicons.py``` script can be used. The input lexicons are json files located in the data folder. 
+
+To merge the lexicons, we defined a unified macro level structure as follows:
 
 * LU-name: lemma:pos
 * lemma: lexical entry form
 * pos: part of speech in upper case, i.e. NOUN, VERB, ADJ, etc..
 * frames: list of frames associated with the entry, where each frame has one or more annotations obtained from the different input directories.
+
+In contrast to a classical lexicon, we associate frames to a form as annotations and not as generalisations. Whereas a generalisation claims to be the most abstract concept that can be associated with a form, an annotation points to the actual usage of a form to represent a concept in a text in coontext. Annotations can be more specific. Below is an example of such an entry for the form "bekogelen" (to pelt). Here the annotation is the usage of "causing harm" as indicated by the FN1.7 frame ```cause-harm```. A more generalised concept of this form would be to abstract from the harm as the word could also be used to throw snow balls for fun without causing harm.
 
 ```
     "bekogelen:VERB": {
@@ -47,7 +51,7 @@ The input lexicons are json files located in the data folder. At macro level, th
     }
 ```
 
-The annotations can differ in terms of additional attributed depending on the input lexicon from which they were drawn. Please refer to the documentation of each subproject for an explanation. At the entry level, additional attributes can have been imported from the RBN dicitonary as shown here:
+As the annotations come from different projects and approaches, they can differ in terms of additional attributes depending on the input lexicon from which they were drawn. Please refer to the documentation of each subproject for an explanation of each micro-structure. At the entry level, additional attributes can have been imported from the RBN dictionary as shown here:
 
 ```
         "incorporated_fe": null,
@@ -69,7 +73,7 @@ The annotations can differ in terms of additional attributed depending on the in
         }
 ```
 
-At the annotation level all annotations at least have:
+At the annotation level all lexicons at least have:
 
 * project: name of the project that created the annotation
 * annotator: name of the annotator or annotation process
@@ -110,16 +114,13 @@ Especially the mentions can have slightly different structures depending on the 
                 ]
 ```
 
-Typically the mentions have references to text corpora created in the DutchFrameNet project (Framing situations in the Dutch Language) and the SoNaR frame annotation project. Mentions contain the token identifiers to find the occurrences in the source text.
-
-For the DutchFrameNet, the NAF files with the original text can be found here: [DFN DATA RELEASE TO B ADDED](). For the SoNaR annotations, we refer to the SoNaR corpus that can be obtained [here](https://opensonar.ivdnt.org).
-
+Mentions have references to either the DataToText corpus (Framing situations in the Dutch Language) or the SoNaR corpus. Mentions contain the token identifiers for the occurrences in the source text. For the DutchFrameNet, the NAF files with the original text can be found here: [DFN DATA RELEASE TO B ADDED](). For the SoNaR annotations, we refer to the SoNaR corpus that can be obtained [here](https://opensonar.ivdnt.org).
 
 ## Scripts
 
-There are a few scripts given in this repository:
+There are several scripts in this repository:
 
-1. For obtaining the entries and annotations from the "Framing situations in the Dutch language" project (the DFN corpus). 
+1. For obtaining the entries and annotations from the DataToText corpus (The "Framing situations in the Dutch language" project). 
    * extract_frame_element_lexicon_from_naf_corpus.py
    * extract_frame_lexicon_from_naf_corpus
 2. For merging input lexicons into a single JSON file:
@@ -127,7 +128,7 @@ There are a few scripts given in this repository:
 3. For obtaining statistics on the merged lexicon:
    * get_statistics.py
 
-The scripts for extracting the DFN corpus lexicon under 1) require access to the annotated texts in the NAF format. This corpus was compiled using the Multilingual Wiki Event Pipeline (MWEP). The source code, instructions, and documentation can be found here:
+The scripts for extracting the lexicon from the DataToText corpus under require access to the annotated texts in the NAF format. This corpus was compiled using the Multilingual Wiki Event Pipeline (MWEP). The source code, instructions, and documentation for building such a corpus can be found here:
 
 * MWEP: [Github](https://github.com/cltl/multilingual-wiki-event-pipeline)
 
@@ -135,9 +136,9 @@ The extracted corpus contains structured data for event instances and texts that
 
 * MWEP annotation tool: [Github](https://github.com/cltl/FrameNet-annotation-tool)
 
-You can create your own corpus using this code and annotate the texts with FrameNet frames. Using the scripts you can extract a lexicon from these annotations.
+You can create your own corpus using this code and annotate the texts with FrameNet frames. Using the extraction scripts, you can extract a lexicon from the annotations.
 
-The "merge_lexicons.py" script combines several input lexicons. The input lexicons for the current release can be found in this Github in de **data** folder. The main function lets you specify which lexicons to merge. Statistics on the merging of all 6 input lexicons is provided here:
+The "merge_lexicons.py" script combines several input lexicons. The input lexicons for the current release can be found in this Github in de **data** folder. The main function lets you specify which lexicons to merge. Statistics on the merging of all six input lexicons is provided here:
 
 * fe_lexicon.json 1179 input, 0 overlap, 1179 added
 * lexicon-manual.json 958 input, 400 overlap, 558 added
@@ -146,7 +147,7 @@ The "merge_lexicons.py" script combines several input lexicons. The input lexico
 * A1.json 1246 input, 1246 overlap, 0 added
 * rbn_dfn_1_2.json 951 input, 51 overlap, 900 added
 
-The merged lexicon [odfn_lexicons_v1.json](../data/odfn_lexicons_v1.json) has 4,308 unique entries with 10,116 frame associations, 7009 of these are frames and 3107 are frame elements. The average polysemy (frames per entry) is 2.36 and 2,515 entries have a single frame. The frame associations cover 864 unique frames and 959 unique frame elements (derived from "fe_lexicon.json"). A frame or frame element that is associated with a lexical entry can have one or more annotations. These annotations can be alignments with the open Dutch wordnet or the Reference Bestand Nederlands (RBN), or they are word tokens in corpora that were annotated. In total 19,355 annotations of these frames have been stored, of which 7198 frames have a single annotation. The [stats.json](stats.json) file provides further statistics.
+The merged lexicon [odfn_lexicons_v1.json](../data/odfn_lexicons_v1.json) has 4,308 unique entries with 10,116 frame associations, 7,009 of these are frames and 3,107 are frame elements. The average polysemy (frames per entry) is 2.36 and 2,515 entries have a single frame. The frame associations cover 864 unique frames and 959 unique frame elements (derived from "fe_lexicon.json"). A frame or frame element that is associated with a lexical entry can have one or more annotations. These annotations can be alignments with the open Dutch wordnet and the Reference Bestand Nederlands (RBN), or they are word tokens in corpora that were annotated. In total 19,355 annotations of these frames have been stored, of which 7,198 frames have a single annotation. The [stats.json](stats.json) file provides further statistics.
 
 ## Acknowledgement
 This works was funded through "Understanding language by machines" project (NWO-2013-Vossen-Spinoza ) and the "Framing Situations in the Dutch Language" project (NWO-VC.GW17.083).
