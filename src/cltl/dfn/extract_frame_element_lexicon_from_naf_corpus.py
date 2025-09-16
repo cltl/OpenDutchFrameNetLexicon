@@ -7,11 +7,16 @@ import json
 import os
 import naf_util as util
 
-def process_naf_file(naf_file, lexicon: {}, status):
+def process_naf_file(naf_file, lexicon: {}, status, language):
     name = os.path.basename(naf_file)
     try:
         tree = et.parse(naf_file)
         root = tree.getroot()
+        attr = "{http://www.w3.org/XML/1998/namespace}lang"
+        attr_val = root.get(attr)
+        if attr_val != language:
+            print('Wrong language tag', attr, attr_val, "in", naf_file)
+            return
         srl_layer = root.find('srl')
         term_layer = root.find('terms')
         mw_layer = root.find('multiwords')
@@ -33,13 +38,13 @@ def process_naf_file(naf_file, lexicon: {}, status):
                     span = role.findall('span/target')
                     lemmas, poses, term_ids = util.getLemmaPosSpanFromTerms(span, term_layer, mw_layer)
                     mentions = util.get_mentions_from_targets(name, term_ids, term_layer, text_layer)
-                    frames = util.getAnnotations(role, mentions)
-                    lemma = "".join(set(lemmas))
-                    pos = "".join(set(poses))
+                    frames = util.getFrameAnnotations(role, mentions)
+                    lemma = "_".join(set(lemmas))
+                    pos = "_".join(set(poses))
                     if lemma == "":
                         print('EMPTY lemma in', 'file', name, 'span', span)
                     else:
-                        util.update_lexicon(lexicon, lemma, pos, frames)
+                        util.update_lexicon(lexicon=lexicon, lemma=lemma, pos=pos, frames=frames)
     except Exception as e:
         print('Error parsing', naf_file, e)
 
@@ -51,6 +56,7 @@ def main():
     """
     # Set up command line argument parsing
     parser = argparse.ArgumentParser(description='Process NAF files from a specified directory.')
+    parser.add_argument('--language', default='nl', help='nl or en')
     parser.add_argument('--path', default="/Users/piek/Desktop/DFN-final/DutchFrameNetData/data.2/nl",
                         help='Path to the directory containing NAF files')
     parser.add_argument('--out', default="/Users/piek/Desktop/DFN-final/DutchFrameNetData/data.2/fe_lexicon.json",
@@ -59,6 +65,7 @@ def main():
     args = parser.parse_args()
     corpus_path = args.path
     lexicon_path = args.out
+    language = args.language
 
     # Get all NAF files
     naf_files = util.get_naf_files(corpus_path)
@@ -69,7 +76,7 @@ def main():
     status = "system"
    # status = "manual"
     for file in naf_files[:500]:
-        process_naf_file(file, lexicon, status)
+        process_naf_file(file, lexicon, status, language)
     try:
         with open(lexicon_path, 'w', encoding='utf-8') as f:
             json.dump(lexicon, f, indent=4, ensure_ascii=False)

@@ -73,6 +73,25 @@ def update_lexicon(lemma, pos, frames, lexicon):
                 framedict[frame]={'annotations':frame_info}
         lexicon[key]={'lemma':lemma, 'pos': pos, 'frames': framedict}
 
+def update_reference_lexicon(lemma, pos, references, lexicon):
+    key = lemma+":"+pos
+    if key in lexicon:
+        for reference in references:
+            ref_info = references.get(reference)
+            if reference in lexicon[key]['references']:
+                lexicon[key]['references'][reference]['annotations'].extend(ref_info)
+            else:
+                lexicon[key]['references'][reference]={'annotations':ref_info}
+    else:
+        referencedict = {}
+        for reference in references:
+            ref_info = references.get(reference)
+            if reference in lexicon:
+                referencedict[reference]['annotations'].append(ref_info)
+            else:
+                referencedict[reference]={'annotations':ref_info}
+        lexicon[key]={'lemma':lemma, 'pos': pos, 'references': referencedict}
+
 def update_lexicon_remove_duplicate_annotation(lemma, pos, lexicon, frames):
     key = lemma + ":" + pos
     if key in lexicon:
@@ -220,7 +239,7 @@ def get_mentions_from_targets(file, targets, term_layer, text_layer):
     return [mention]
 
 
-def getAnnotations(predicate, mentions):
+def getFrameAnnotations(predicate, mentions):
     frames = {}
     frame_info = predicate.findall('externalReferences/externalRef')
     status = predicate.attrib.get('status')
@@ -239,3 +258,23 @@ def getAnnotations(predicate, mentions):
         else:
             frames[frame] = [annotation]
     return frames
+
+
+
+def getReferenceAnnotations(coref, mentions):
+    references = {}
+    reference_info = coref.findall('externalReferences/externalRef')
+    status = coref.attrib.get('status')
+    for ref in reference_info:
+        reference = ref.attrib.get('reference')
+        source = ref.attrib.get('source')
+        t = ref.attrib.get('timestamp')
+        reftype = ref.attrib.get('reftype')
+        annotation = {'project': 'DutchFrameNet', 'status': status, 'annotator': source, 'timestamp': t, 'reftype': reftype, 'mention': []}
+        for mention in mentions:
+            annotation['mention'].append(mention)
+        if reference in references:
+            references[reference].append(annotation)
+        else:
+            references[reference] = [annotation]
+    return references
