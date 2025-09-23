@@ -156,31 +156,90 @@ def get_term_from_term_id(target, layer):
                     return element
     return None
 
+def getTokenFromTokenId(token_id, text_layer):
+    for wf in text_layer.getchildren():
+        if wf.get('id') == token_id:
+            return wf
+    return None
 
-
-def getLemmaPosSpanFromTerms(span, term_layer, mw_layer):
+def getLemmaPosSpanFromTerms(spans, term_layer, mw_layer, text_layer):
     lemmas = []
     pos = []
     terms = []
+    term_ids = []
+    try:
+        for span in spans:
+            term_ids.append(span.attrib.get('id'))
+        term_ids.sort()
+        for s in term_ids:
+            id = s
+            term = get_term_from_term_id(id, term_layer)
+            if term is None:
+                term = get_term_from_term_id(id, mw_layer)
+            if term is not None:
+                terms.append(term)
+            else:
+                print('Could not find this term:', id)
+        for term in terms:
+            lemma = term.attrib.get('lemma')
+            if lemma is not None:
+                lemmas.append(lemma)
+            p = term.attrib.get('pos')
+            if p is not None:
+                pos.append(p)
+    except Exception as e:
+        print('Error processing spans', spans, e)
+    return lemmas, pos, terms
+
+def getTokenSpanForTermSpan(span, term_layer, mw_layer, text_layer):
+    tokens = []
     for s in span:
         id = s.attrib.get('id')
         term = get_term_from_term_id(id, term_layer)
         if term is None:
             term = get_term_from_term_id(id, mw_layer)
         if term is not None:
-            terms.append(term)
-        else:
-            print('Could not find this term:', id)
-    for term in terms:
-        lemma = term.attrib.get('lemma')
-        if lemma is not None:
-            lemmas.append(lemma)
-        p = term.attrib.get('pos')
-        if p is not None:
-            pos.append(p)
-    return lemmas, pos, terms
+            for wf in term.findall('span/target'):
+                token = wf.get('id')
+                tokens.append(token)
+    return tokens
 
-def get_mentions_from_targets(file, targets, term_layer, text_layer):
+
+def getOffsetDictForTermSpan(spans, term_layer, mw_layer, text_layer):
+    offsets = {}
+    print('Type', type(spans))
+    for s in spans:
+        id = s.attrib.get('id')
+        term = get_term_from_term_id(id, term_layer)
+        if term is None:
+            term = get_term_from_term_id(id, mw_layer)
+        if term is not None:
+            for wf_id in term.findall('span/target'):
+                wf = getTokenFromTokenId(wf_id, text_layer)
+                if wf:
+                    offset = wf.get('offset')
+                    offsets[offset]=id
+    return offsets
+
+
+def sort_by_offset(spans, term_layer, mw_layer, text_layer):
+    sorted_term_spans =[]
+    offset_dict = getOffsetDictForTermSpan(spans, term_layer, mw_layer, text_layer)
+    print('Offset dict', offset_dict)
+    sortedKeys = list(offset_dict.keys())
+    sortedKeys.sort()
+    if sortedKeys:
+        print('Sorted keys',sortedKeys)
+        for k in sortedKeys:
+            s = offset_dict[k]
+            sorted_term_spans.append(s)
+    else:
+        print('Error, could not find tokens for spans:', spans)
+        for s in spans:
+            print(s.attrib.get('id'))
+    return sorted_term_spans
+
+def get_mentions_from_targets_org(file, targets, term_layer, text_layer):
     # targets can be terms or multiwords
     # in the former case, we can get the tokens that make up a term directly
     # in the latter case, we need to get the list of terms from the multiword to get the list of tokens.
@@ -238,6 +297,64 @@ def get_mentions_from_targets(file, targets, term_layer, text_layer):
 
     return [mention]
 
+def get_mentions_from_targets(file, targets, term_layer, text_layer):
+    # targets can be terms or multiwords
+    # in the former case, we can get the tokens that make up a term directly
+    # in the latter case, we need to get the list of terms from the multiword to get the list of tokens.
+    # a third case is when the target is compound component, in which case a subtoken needs to be retrieved
+        # <wf sent="7" id="w144" length="17" offset="848">
+        # MH17-nabestaanden<subtoken id="w144.sub0" length="4" offset="848">MH17</subtoken>
+        # <subtoken id="w144.sub1" length="1" offset="852">-</subtoken>
+        # <subtoken id="w144.sub2" length="12" offset="856">nabestaanden</subtoken>
+        # </wf>
+    spans = []
+    tokens = []
+    term_ids = []
+    sentence_tokens = []
+    sentence_ids = []
+
+    for target in targets:
+        term_ids.append(target.attrib.get('id'))
+        if target.get('id').startswith("t"):
+            # this is a normal term so we get the word form ids
+            spans = target.findall('span/target')
+        else:
+            for component in target.getchildren():
+                component_span = component.findall('span/target')
+                for cs in component_span:
+                    term = get_term_from_term_id(cs.get('id'), term_layer)
+                    if term is not None:
+                        term_spans = term.findall('span/target')
+                        spans.extend(term_spans)
+        for wf in text_layer.getchildren():
+            for s in spans:
+                token = {}
+                if wf.get('id')==s.attrib.get('id'):
+                    sentence_id = wf.get('sent')
+                    if sentence_id not in sentence_ids:
+                        sentence_ids.append(sentence_id)
+                    token = {"token_id":wf.get('id'), 'sent':sentence_id, 'offset':wf.get('offset'), 'length':wf.get('length')}
+                    tokens.append(token)
+                else:
+                    components = wf.getchildren()
+                    for component in components:
+                        if component.get('id')==s.attrib.get('id'):
+                            sentence_id = component.get('sent')
+                            if sentence_id not in sentence_ids:
+                                sentence_ids.append(sentence_id)
+                            token = {"token_id": component.get('id'), 'sent': sentence_id, 'offset': component.get('offset'),
+                                     'length': component.get('length')}
+                            tokens.append(token)
+
+    for wf in text_layer.getchildren():
+        sentence_id = wf.get('sent')
+        if sentence_id in sentence_ids:
+            sentence_tokens.append(wf.text)
+    sentence = " ".join(sentence_tokens)
+    sentence = sentence.replace("\n", "")
+    mention = {"doc": file, 'term': "".join(term_ids), 'tokens' : tokens, "text": sentence}
+
+    return [mention]
 
 def getFrameAnnotations(predicate, mentions):
     frames = {}

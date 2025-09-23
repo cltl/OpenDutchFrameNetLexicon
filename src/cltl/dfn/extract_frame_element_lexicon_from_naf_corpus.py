@@ -7,7 +7,7 @@ import json
 import os
 import naf_util as util
 
-def process_naf_file(naf_file, lexicon: {}, status, language):
+def process_naf_file(naf_file, lexicon: {}, language):
     name = os.path.basename(naf_file)
     try:
         tree = et.parse(naf_file)
@@ -28,19 +28,21 @@ def process_naf_file(naf_file, lexicon: {}, status, language):
         else:
             # get all predicates (in a list)
             predicates = srl_layer.findall('predicate')
+            print('Nr of predicates', name, ':', len(predicates))
             for predicate in predicates:
-                if not predicate.get("status") == status:
+                if predicate.get("status") == "deprecated":
                     continue
                 roles = predicate.findall('role')
                 for role in roles:
-                    if not role.get("status") == status:
+                    print('Nr of roles', len(roles))
+                    if  role.get("status") == "deprecated":
                         continue
                     span = role.findall('span/target')
-                    lemmas, poses, term_ids = util.getLemmaPosSpanFromTerms(span, term_layer, mw_layer)
+                    lemmas, poses, term_ids = util.getLemmaPosSpanFromTerms(span, term_layer, mw_layer, text_layer)
                     mentions = util.get_mentions_from_targets(name, term_ids, term_layer, text_layer)
                     frames = util.getFrameAnnotations(role, mentions)
-                    lemma = "_".join(set(lemmas))
-                    pos = "_".join(set(poses))
+                    lemma = "_".join(lemmas)
+                    pos = "_".join(poses)
                     if lemma == "":
                         print('EMPTY lemma in', 'file', name, 'span', span)
                     else:
@@ -57,14 +59,12 @@ def main():
     # Set up command line argument parsing
     parser = argparse.ArgumentParser(description='Process NAF files from a specified directory.')
     parser.add_argument('--language', default='nl', help='nl or en')
-    parser.add_argument('--path', default="/Users/piek/Desktop/DFN-final/DutchFrameNetData/data.2/nl",
+    parser.add_argument('--path', default="/Users/piek/Desktop/DFN-final/DutchFrameNetData.1/data.2",
                         help='Path to the directory containing NAF files')
-    parser.add_argument('--out', default="/Users/piek/Desktop/DFN-final/DutchFrameNetData/data.2/fe_lexicon.json",
-                        help='Path to the output file for the lexicon.json file')
 
     args = parser.parse_args()
-    corpus_path = args.path
-    lexicon_path = args.out
+    corpus_path = args.path+"/"+args.language
+    lexicon_path = args.path+"/"+"frame_element_lexicon.json"
     language = args.language
 
     # Get all NAF files
@@ -73,10 +73,8 @@ def main():
     # Print the number of NAF files found
     print(f"Found {len(naf_files)} NAF files in {corpus_path}")
     lexicon = {}
-    status = "system"
-   # status = "manual"
-    for file in naf_files[:500]:
-        process_naf_file(file, lexicon, status, language)
+    for file in naf_files:
+        process_naf_file(file, lexicon, language)
     try:
         with open(lexicon_path, 'w', encoding='utf-8') as f:
             json.dump(lexicon, f, indent=4, ensure_ascii=False)
