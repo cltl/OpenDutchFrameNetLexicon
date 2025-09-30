@@ -21,7 +21,7 @@ def process_lexicons(merged_dict:{}, file):
                             if not element in org_lex_entry_info:
                                 info = lex_entry_info.get(element)
                                 org_lex_entry_info[element]=info
-                                if lex_entry=="stellen:VERB":
+                                if lex_entry=="neerhalen:VERB":
                                     print(org_lex_entry_info)
                             else:
                                 if not org_lex_entry_info[element]==org_lex_entry_info[element]:
@@ -29,22 +29,51 @@ def process_lexicons(merged_dict:{}, file):
                                     print(org_lex_entry_info[element], lex_entry_info[element])
                        except Exception as e:
                             print(f"Error merging JSON structure: {str(e)}", file, element, org_lex_entry_info[element])
-                    org_frames = org_lex_entry_info['frames']
-                    new_frames = lex_entry_info['frames']
-                    for frame in new_frames:
-                        try:
-                            new_frame_info = new_frames.get(frame)
-                            new_annotations = new_frame_info['annotations']
-                            if frame in org_frames:
-                                old_frame_info = org_frames.get(frame)
-                                old_annotations = old_frame_info['annotations']
-                                old_annotations.extend(new_annotations)
-                                org_frames[frame]['annotations']= old_annotations
-                            else:
-                                org_frames[frame] = new_frame_info
-                        except Exception as e:
-                            print(f"Error merging JSON structure for frames: {str(e)}", file, 'frame', frame, type (new_frames), new_frame_info)
-                    org_lex_entry_info['frames'] = org_frames
+
+                    #### merge the frame annotations
+                    if 'frames' in lex_entry_info:
+                        new_frames = lex_entry_info['frames']
+                        if 'frames' not in org_lex_entry_info:
+                            org_frames = org_lex_entry_info['frames']
+                            for frame in new_frames:
+                                try:
+                                    new_frame_info = new_frames.get(frame)
+                                    new_annotations = new_frame_info['annotations']
+                                    if frame in org_frames:
+                                        old_frame_info = org_frames.get(frame)
+                                        old_annotations = old_frame_info['annotations']
+                                        old_annotations.extend(new_annotations)
+                                        org_frames[frame]['annotations']= old_annotations
+                                    else:
+                                        org_frames[frame] = new_frame_info
+                                except Exception as e:
+                                    print(f"Error merging JSON structure for frames: {str(e)}", file, 'frame', frame, type (new_frames), new_frame_info)
+                            org_lex_entry_info['frames'] = org_frames
+                        else:
+                            org_lex_entry_info['frames'] = new_frames
+
+                    #### merge the reference annotations
+                    if 'references' in lex_entry_info:
+                        new_references = lex_entry_info['references']
+                        if 'references' in org_lex_entry_info:
+                            org_references = org_lex_entry_info['references']
+                            for reference in new_references:
+                                try:
+                                    new_reference_info = new_references.get(reference)
+                                    new_annotations = new_reference_info['annotations']
+                                    if reference in org_references:
+                                        old_refeernce_info = org_references.get(reference)
+                                        old_annotations = old_refeernce_info['annotations']
+                                        old_annotations.extend(new_annotations)
+                                        org_references[reference]['annotations']= old_annotations
+                                    else:
+                                        org_references[reference] = new_reference_info
+                                except Exception as e:
+                                    print(f"Error merging JSON structure for references: {str(e)}", file, 'reference', reference, type (new_references), new_reference_info)
+                            org_lex_entry_info['references'] = org_references
+                        else:
+                            org_lex_entry_info['references'] = new_references
+
                     merged_dict[lex_entry] = org_lex_entry_info
                 else:
                     nr_new_entries += 1
@@ -64,15 +93,16 @@ def process_lexicons(merged_dict:{}, file):
 def prune_annotations_in_lexicon(lexicon):
     for lex_entry in lexicon:
         lex_entry_info = lexicon.get(lex_entry)
-        frames = lex_entry_info['frames']
-        for frame in frames:
-            frame_info = frames.get(frame)
-            annotations = frame_info['annotations']
-            pruned_annotations = util.prune_annotations(annotations)
-            frame_info['annotations'] = pruned_annotations
+        if 'frames' in lex_entry_info:
+            frames = lex_entry_info['frames']
+            for frame in frames:
+                frame_info = frames.get(frame)
+                annotations = frame_info['annotations']
+                pruned_annotations = util.prune_annotations(annotations)
+                frame_info['annotations'] = pruned_annotations
 
 def main():
-    lexicons = ["fe_lexicon.json", "lexicon-manual.json", "lexicon-system.json", "A1.json", "A2.json", "rbn_dfn_1_2.json"]
+    lexicons = ["nl_frame_element_lexicon.json", "nl_frame_lexicon.json", "A1.json", "A2.json", "rbn_dfn_1_2.json"]
     root_dir = "."
     # filenames = os.walk(root_dir)
 

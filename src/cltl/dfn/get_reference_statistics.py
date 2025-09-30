@@ -1,13 +1,17 @@
 import json
+import os
 from shutil import unregister_archive_format
 
 
 def main():
-    lexicon_path = "../../..//data/odfn_lexicon_v0.1.json"
+    data_folder = "../../../data/DFN-corpus-based/"
+  #  lexicon_path = data_folder+"nl_reference_lexicon.json"
+    lexicon_path =  data_folder+"en_reference_lexicon.json"
+    lexicon_name = os.path.basename(lexicon_path)
     nr_entries = 0
     total_annotations =0
     pos_dict= {}
-    frame_dict = {}
+    reference_dict = {}
     polysemy_dict = {}
     status_dict = {}
     project_annotations_dict = {}
@@ -22,19 +26,24 @@ def main():
             pos_dict[pos]+=1
         else:
             pos_dict[pos] = 1
-        frames = lex_info['frames']
-        polysemy = len(frames)
+        references = lex_info['references']
+     #   print(len(references), lex_entry, references.keys())
+        polysemy = len(references)
         if polysemy in polysemy_dict:
             polysemy_dict[polysemy] +=1
         else:
             polysemy_dict[polysemy] = 1
-        for frame in frames:
-            if frame in frame_dict:
-                frame_dict[frame] += 1
+        for reference in references:
+            if reference in reference_dict:
+                reference_dict[reference] += 1
             else:
-                frame_dict[frame] = 1
-            frame_info = frames.get(frame)
+                reference_dict[reference] = 1
+            frame_info = references.get(reference)
             annotations = frame_info['annotations']
+            if annotations is None:
+            #    print(frame_info)
+                print('no annotations for', lex_entry, reference)
+                continue
             multiple_source = ""
             nr_annotations = len(annotations)
             if nr_annotations in nr_annotations_dict:
@@ -61,11 +70,11 @@ def main():
                     status_dict[status]+=1
                 else:
                     status_dict[status]=1
-    average_polysemy = nr_entries/len(frame_dict)
-    average_annotations = total_annotations/len(frame_dict)
-    stats = {"name": lexicon_path, "total_entries": nr_entries, "pos": pos_dict, "frame_coverage": len(frame_dict), "frames": frame_dict, "average_polysemy": average_polysemy, "polysemy_distribution": polysemy_dict, "status_distribution": status_dict, "average_annotations": average_annotations, "total_annotations": total_annotations, "project_annotation_distribution": project_annotations_dict, "nr_annotations_distribution": nr_annotations_dict, "multiple_sources": multiple_sources_dict}
+    average_polysemy = nr_entries/len(reference_dict)
+    average_annotations = total_annotations/len(reference_dict)
+    stats = {"name": lexicon_path, "total_entries": nr_entries, "pos": pos_dict, "reference_coverage": len(reference_dict), "references": reference_dict, "average_polysemy": average_polysemy, "polysemy_distribution": polysemy_dict, "status_distribution": status_dict, "average_annotations": average_annotations, "total_annotations": total_annotations, "project_annotation_distribution": project_annotations_dict, "nr_annotations_distribution": nr_annotations_dict, "multiple_sources": multiple_sources_dict}
 
-    stats_path = "./stats.json"
+    stats_path = data_folder+lexicon_name+"_stats.json"
     try:
         with open(stats_path, 'w', encoding='utf-8') as f:
             json.dump(stats, f, indent=4, ensure_ascii=False)

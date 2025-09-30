@@ -58,20 +58,20 @@ def main():
     """
     # Set up command line argument parsing
     parser = argparse.ArgumentParser(description='Process NAF files from a specified directory.')
-    parser.add_argument('--language', default='nl', help='nl or en')
-    parser.add_argument('--path', default="/Users/piek/Desktop/DFN-final/DutchFrameNetData.1/data.2",
+    parser.add_argument('--output', default='../../../data/DFN-corpus-based', help='Folder to save the lexicon to')
+    parser.add_argument('--language', default='en', help='nl or en')
+    parser.add_argument('--path', default="/Users/piek/Desktop/DFN-final/DutchFrameNetData/data/data-unique-ids-final/unstructured",
                         help='Path to the directory containing NAF files')
 
     args = parser.parse_args()
-    corpus_path = args.path+"/"+args.language
-    lexicon_path = args.path+"/"+"frame_element_lexicon.json"
     language = args.language
+    lexicon_path = args.output+"/"+language+"_frame_element_lexicon.json"
 
     # Get all NAF files
-    naf_files = util.get_naf_files(corpus_path)
+    naf_files = util.get_naf_files(args.path)
 
     # Print the number of NAF files found
-    print(f"Found {len(naf_files)} NAF files in {corpus_path}")
+    print(f"Found {len(naf_files)} NAF files in {args.path}")
     lexicon = {}
     for file in naf_files:
         process_naf_file(file, lexicon, language)

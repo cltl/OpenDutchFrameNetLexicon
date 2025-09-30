@@ -77,6 +77,8 @@ def update_reference_lexicon(lemma, pos, references, lexicon):
     key = lemma+":"+pos
     if key in lexicon:
         for reference in references:
+            if reference.startswith("Q"):
+                reference = "http://www.wikidata.org/entity/"+reference
             ref_info = references.get(reference)
             if reference in lexicon[key]['references']:
                 lexicon[key]['references'][reference]['annotations'].extend(ref_info)
@@ -384,6 +386,8 @@ def getReferenceAnnotations(coref, mentions):
     status = coref.attrib.get('status')
     for ref in reference_info:
         reference = ref.attrib.get('reference')
+        if reference.startswith("Q"):
+            reference = "http://www.wikidata.org/entity/"+reference
         source = ref.attrib.get('source')
         t = ref.attrib.get('timestamp')
         reftype = ref.attrib.get('reftype')
