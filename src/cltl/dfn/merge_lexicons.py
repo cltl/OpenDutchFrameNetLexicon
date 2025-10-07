@@ -103,6 +103,7 @@ def prune_annotations_in_lexicon(lexicon):
 
 def main():
     lexicons = ["nl_frame_element_lexicon.json", "nl_frame_lexicon.json", "A1.json", "A2.json", "rbn_dfn_1_2.json"]
+   # lexicons = ["en_frame_element_lexicon.json", "en_frame_lexicon.json"]
     root_dir = "."
     # filenames = os.walk(root_dir)
 
@@ -118,7 +119,7 @@ def main():
     print('merged lexicon', len(merged_dict.items()))
     prune_annotations_in_lexicon(merged_dict)
     print('merged lexicon', len(merged_dict.items()))
-    merged_lexicon_path = "../../..//data/odfn_lexicon_v0.1.json"
+    merged_lexicon_path = "../../..//data/dfn_lexicon_v0.1.json"
     try:
         with open(merged_lexicon_path, 'w', encoding='utf-8') as f:
             json.dump(merged_dict, f, indent=4, ensure_ascii=False)

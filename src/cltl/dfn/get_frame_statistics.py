@@ -18,6 +18,7 @@ def main():
  #   lexicon_path = data_folder+"A2.json"
     data_folder = "../../../data/"
     lexicon_path = data_folder+"odfn_lexicon_v0.1.json"
+    lexicon_path = data_folder+"dfn_lexicon_v0.1.json"
     lexicon_name = os.path.basename(lexicon_path)
     nr_entries = 0
     total_annotations =0
