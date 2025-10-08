@@ -2,6 +2,78 @@ import json
 from pathlib import Path
 import json
 from pathlib import Path
+from collections import defaultdict, Counter
+import requests
+
+
+def get_wikidata_label(uri, language='en'):
+    # Extract Q number from URI
+    q_number = uri.split('/')[-1]  # This works for URIs like 'http://www.wikidata.org/entity/Q12345'
+
+    if not q_number.startswith('Q'):
+        q_number = 'Q' + q_number
+
+    # Add user agent header to comply with Wikidata's API policies
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (compatible; MyWikidataBot/1.0; +http://example.org)',
+    }
+
+    url = f'https://www.wikidata.org/w/api.php?action=wbgetentities&ids={q_number}&format=json&languages={language}'
+
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()  # Raise an exception for bad status codes
+
+        data = response.json()
+
+        if 'error' in data:
+            print(f"API Error for {q_number}: {data['error']}")
+            return None
+
+        if 'entities' in data and q_number in data['entities']:
+            entity = data['entities'][q_number]
+            if 'labels' in entity and language in entity['labels']:
+                return entity['labels'][language]['value']
+            else:
+                print(f"No {language} label found for {q_number}")
+                return None
+        else:
+            print(f"No entity data found for {q_number}")
+            return None
+
+    except requests.exceptions.RequestException as e:
+        print(f"Request failed for {q_number}: {str(e)}")
+        return None
+    except json.JSONDecodeError as e:
+        print(f"JSON decode error for {q_number}: {str(e)}")
+        print(f"Response content: {response.content}")
+        return None
+    except Exception as e:
+        print(f"Unexpected error for {q_number}: {str(e)}")
+        return None
+
+
+# Example usage with rate limiting
+def get_multiple_labels(uris, language='en'):
+    labels = {}
+    for uri in uris:
+        label = get_wikidata_label(uri, language)
+        labels[uri] = label
+        time.sleep(0.1)  # Add a small delay between requests to avoid rate limiting
+    return labels
+
+
+# def get_wikidata_label(uri, language='en'):
+#     q_number = uri.split('/')[-1]  # This works for URIs like 'http://www.wikidata.org/entity/Q12345'
+#     url = f'https://www.wikidata.org/w/api.php?action=wbgetentities&ids={q_number}&format=json&languages={language}'
+#     try:
+#         response = requests.get(url)
+#         data = response.json()
+#         return data['entities'][q_number]['labels'][language]['value']
+#     except Exception as e:
+#         print(f"Error retrieving label for {q_number}: {str(e)}")
+#         print(url)
+#         return None
 
 def get_reference_dictionary(reference_lexicon, reference_dictionary, mention_dictionary):
     for lex_entry in reference_lexicon:
@@ -108,6 +180,51 @@ def main():
     with open(grounded_intersection_file, 'w', encoding='utf-8') as f:
         json.dump(intersection_framings, f, indent=4, ensure_ascii=False)
     print(f"Successfully saved JSON to {grounded_intersection_file}")
+    csv_str = ""
+    stats = {"Nr_of_intersecting_entities": len(intersecting_references)}
+    nr_nl_mentions = 0
+    nr_en_mentions = 0
+    nr_en_only = 0
+    nr_nl_only = 0
+    nr_nl_and_en = 0
+    entity_frames = []
+    for entity_framing in intersection_framings:
+        referent = entity_framing["referent"]
+        referent_name = get_wikidata_label(referent, "en")
+        nl_frames = []
+        en_frames = []
+        nl_en_frames = []
+        if "framings" in entity_framing:
+            nl = False
+            en = False
+            for framing in entity_framing["framings"]:
+                if framing["language"] == "nl":
+                    nl_frames.extend(framing["frames"])
+                    nr_nl_mentions += 1
+                    nl = True
+                elif framing["language"] == "en":
+                    en_frames.extend(framing["frames"])
+                    en = True
+                    nr_en_mentions += 1
+            if en and nl:
+                nr_nl_and_en += 1
+            elif en:
+                nr_en_only += 1
+            elif nl:
+                nr_nl_only += 1
+        nl_en_frames = list(set(nl_frames).intersection(en_frames))
+        nl_en_frames = Counter(nl_en_frames)
+        nl_frames = Counter(nl_frames)
+        en_frames = Counter(en_frames)
+        csv_str += f"{referent},{referent_name},{len(nl_frames)},{len(en_frames)},{len(nl_en_frames)}\n"
+        entity_frames.append({"referent": referent, "label": referent_name, "nl_en_frames": nl_en_frames, "nl_frames": nl_frames, "en_frames": en_frames})
+    stats.update({"nr_nl_mentions": nr_nl_mentions, "nr_en_mentions": nr_en_mentions, "nr_en_only": nr_en_only, "nr_nl_only": nr_nl_only, "nr_nl_and_en": nr_nl_and_en, "framings":entity_frames})
+    grounded_stats_file = Path.joinpath(root_dir,"grounded_framing_english_dutch_stats.json")
+    with open(grounded_stats_file, 'w', encoding='utf-8') as f:
+        json.dump(stats, f, indent=4, ensure_ascii=False)
+    print(f"Successfully saved JSON to {grounded_stats_file}")
+    print(csv_str)
+
 
 if __name__ == "__main__":
         main()
