@@ -64,16 +64,6 @@ def get_most_frequent_mention(expressions):
         most_frequent_name = name_counts.most_common(1)[0][0]
     return most_frequent_name
 
-# Example usage with rate limiting
-def get_multiple_labels(uris, language='en'):
-    labels = {}
-    for uri in uris:
-        label = get_wikidata_label(uri, language)
-        labels[uri] = label
-        time.sleep(0.1)  # Add a small delay between requests to avoid rate limiting
-    return labels
-
-
 # def get_wikidata_label(uri, language='en'):
 #     q_number = uri.split('/')[-1]  # This works for URIs like 'http://www.wikidata.org/entity/Q12345'
 #     url = f'https://www.wikidata.org/w/api.php?action=wbgetentities&ids={q_number}&format=json&languages={language}'
@@ -229,14 +219,19 @@ def main():
                 nr_nl_only += 1
 
         most_frequent_name = get_most_frequent_mention(nl_lexical_entries+en_lexical_entries)
-        nl_lexical_entries = (nl_lexical_entries)
-        en_lexical_entries = (en_lexical_entries)
-        en_lexical_entries = Counter(en_lexical_entries)
-        nl_lexical_entries = (nl_lexical_entries)
-        nl_en_frames = list(set(nl_frames).intersection(en_frames))
-        nl_en_frames = Counter(nl_en_frames)
-        nl_frames = Counter(nl_frames)
-        en_frames = Counter(en_frames)
+        nl_lexical_entries =OrderedDict(sorted(Counter(nl_lexical_entries).items()))
+        en_lexical_entries =OrderedDict(sorted(Counter(en_lexical_entries).items()))
+        nl_en_frames = []
+        for nl_frame in nl_frames:
+            if nl_frame in en_frames:
+                nl_en_frames.append(nl_frame)
+        for en_frame in en_frames:
+            if en_frame in nl_frames:
+                nl_en_frames.append(en_frame)
+        nl_en_frames = OrderedDict(sorted(Counter(nl_en_frames).items(), key=lambda x: x[1], reverse=True))
+        nl_frames = OrderedDict(sorted(Counter(nl_frames).items(), key=lambda x: x[1], reverse=True))
+        en_frames = OrderedDict(sorted(Counter(en_frames).items(), key=lambda x: x[1], reverse=True))
+
         csv_str += f"{referent},{referent_name},{most_frequent_name},{len(nl_frames)},{len(en_frames)},{len(nl_en_frames)}\n"
         entity_frames.append({"referent": referent, "label": referent_name, "most_frequent_mention": most_frequent_name, "nl_lexical_entries": nl_lexical_entries, "en_lexical_entries": en_lexical_entries, "nl_en_frames": nl_en_frames, "nl_frames": nl_frames, "en_frames": en_frames})
     stats.update({"nr_nl_mentions": nr_nl_mentions, "nr_en_mentions": nr_en_mentions, "nr_en_only": nr_en_only, "nr_nl_only": nr_nl_only, "nr_nl_and_en": nr_nl_and_en, "framings":entity_frames})
