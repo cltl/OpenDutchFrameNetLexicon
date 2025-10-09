@@ -2,7 +2,8 @@ import json
 from pathlib import Path
 import json
 from pathlib import Path
-from collections import defaultdict, Counter
+
+from collections import defaultdict, Counter, OrderedDict
 import requests
 
 
@@ -52,6 +53,16 @@ def get_wikidata_label(uri, language='en'):
         print(f"Unexpected error for {q_number}: {str(e)}")
         return None
 
+def get_most_frequent_mention(expressions):
+    most_frequent_name = "NONE"
+    names = []
+    for expression in expressions:
+        if 'NOUN' in expression or 'PROPN' in expression:
+            names.append(expression)
+    if len(names) > 0:
+        name_counts = Counter(names)
+        most_frequent_name = name_counts.most_common(1)[0][0]
+    return most_frequent_name
 
 # Example usage with rate limiting
 def get_multiple_labels(uris, language='en'):
@@ -194,15 +205,19 @@ def main():
         nl_frames = []
         en_frames = []
         nl_en_frames = []
+        nl_lexical_entries = []
+        en_lexical_entries = []
         if "framings" in entity_framing:
             nl = False
             en = False
             for framing in entity_framing["framings"]:
                 if framing["language"] == "nl":
+                    nl_lexical_entries.append(framing["lex_entry"])
                     nl_frames.extend(framing["frames"])
                     nr_nl_mentions += 1
                     nl = True
                 elif framing["language"] == "en":
+                    en_lexical_entries.append(framing["lex_entry"])
                     en_frames.extend(framing["frames"])
                     en = True
                     nr_en_mentions += 1
@@ -212,12 +227,18 @@ def main():
                 nr_en_only += 1
             elif nl:
                 nr_nl_only += 1
+
+        most_frequent_name = get_most_frequent_mention(nl_lexical_entries+en_lexical_entries)
+        nl_lexical_entries = (nl_lexical_entries)
+        en_lexical_entries = (en_lexical_entries)
+        en_lexical_entries = Counter(en_lexical_entries)
+        nl_lexical_entries = (nl_lexical_entries)
         nl_en_frames = list(set(nl_frames).intersection(en_frames))
         nl_en_frames = Counter(nl_en_frames)
         nl_frames = Counter(nl_frames)
         en_frames = Counter(en_frames)
-        csv_str += f"{referent},{referent_name},{len(nl_frames)},{len(en_frames)},{len(nl_en_frames)}\n"
-        entity_frames.append({"referent": referent, "label": referent_name, "nl_en_frames": nl_en_frames, "nl_frames": nl_frames, "en_frames": en_frames})
+        csv_str += f"{referent},{referent_name},{most_frequent_name},{len(nl_frames)},{len(en_frames)},{len(nl_en_frames)}\n"
+        entity_frames.append({"referent": referent, "label": referent_name, "most_frequent_mention": most_frequent_name, "nl_lexical_entries": nl_lexical_entries, "en_lexical_entries": en_lexical_entries, "nl_en_frames": nl_en_frames, "nl_frames": nl_frames, "en_frames": en_frames})
     stats.update({"nr_nl_mentions": nr_nl_mentions, "nr_en_mentions": nr_en_mentions, "nr_en_only": nr_en_only, "nr_nl_only": nr_nl_only, "nr_nl_and_en": nr_nl_and_en, "framings":entity_frames})
     grounded_stats_file = Path.joinpath(root_dir,"grounded_framing_english_dutch_stats.json")
     with open(grounded_stats_file, 'w', encoding='utf-8') as f:
